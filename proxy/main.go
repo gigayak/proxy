@@ -62,15 +62,16 @@ func (h *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		n, err := resp.Body.Read(buf)
 		eof := err == io.EOF
 		if err != nil && !eof {
+			log.Printf("Error reading body: %v", err)
 			http.Error(w, fmt.Sprintf("error reading body: %v", err),
 				http.StatusInternalServerError)
+			return
 		}
-		written, err := w.Write(buf[:n])
+		_, err = w.Write(buf[:n])
 		if err != nil {
 			log.Printf("Failed to write response: %v", err)
 			return
 		}
-		log.Printf("Wrote %d response bytes", written)
 		if eof || n == 0 {
 			break
 		}
