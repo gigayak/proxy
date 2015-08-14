@@ -42,7 +42,7 @@ func (h *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if !cert.IsCA {
 				if username != "" {
 					log.Printf("Found multiple certs (one is %q)", username)
-					http.Error(w, "multiple certs?", http.StatusBadRequest)
+					http.Error(w, "", http.StatusForbidden)
 					return
 				}
 				username = cert.Subject.CommonName
@@ -51,7 +51,7 @@ func (h *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if username == "" {
 		log.Printf("Invalid username: %q", username)
-		http.Error(w, "invalid username", http.StatusForbidden)
+		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
