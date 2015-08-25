@@ -55,6 +55,14 @@ func (h *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The Golang net/http client messes something up as far as hostnames go.
+	// The end result is that r.URL.Host is blank for requests made by my
+	// HTTPS-proxied wget clone.  This hack treats the symptoms - but not the
+	// root cause...
+	if r.URL.Host == "" && r.Host != "" {
+		r.URL.Host = r.Host
+	}
+
 	// Security validation - prevents us from being an open proxy if this
 	// server is accidentally left exposed to the world.
 	if !strings.HasSuffix(r.URL.Host, "." + h.domain) && r.URL.Host != h.domain {
