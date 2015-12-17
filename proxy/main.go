@@ -25,9 +25,11 @@ var (
 	key = flag.String("key", "", "Location of HTTPS .key private key file.")
 	domain = flag.String("domain", "", "Which domain to proxy subdomains for.")
 	addr = flag.String("address", ":443", "Address to listen on.")
-	cacert = flag.String("certificate_authority",
-		"/etc/pki/ca-trust/source/anchors/machine-audio-research-ca.pem",
-		"PEM file for certificate authority responsible for client certs.")
+	cacerts = flag.String("certificate_authority",
+		"/etc/pki/ca-trust/source/anchors/gigayak.pem,"+
+		"/usr/local/share/ca-certificates/gigayak.pem",
+		"Comma-separated list of PEM files for certificate authority"+
+		"responsible for client certs.  At least one must be found.")
 )
 
 type proxyHandler struct {
@@ -124,13 +126,22 @@ func main() {
 	})
 
 	pool := x509.NewCertPool()
-	b, err := ioutil.ReadFile(*cacert)
-	if err != nil {
-		log.Fatalf("Failed to read client CA PEM file %q", *cacert)
+	var foundCA bool
+	for _, path in range strings.Split(*cacerts) {
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Printf("Failed to read client CA PEM file %q", path)
+			continue
+		}
+		ok := pool.AppendCertsFromPEM(b)
+		if !ok {
+			log.Printf("Failed to load client CA cert from %q", path)
+			continue
+		}
+		foundCA = true
 	}
-	ok := pool.AppendCertsFromPEM(b)
-	if !ok {
-		log.Fatalf("Failed to load client CA cert from %q", *cacert)
+	if !foundCA {
+		log.Fatalf("Failed to find a viable CA cert in list %q.", *cacerts)
 	}
 
 	log.Printf("Listening on %s", *addr)
