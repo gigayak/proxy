@@ -127,7 +127,7 @@ func main() {
 
 	pool := x509.NewCertPool()
 	var foundCA bool
-	for _, path in range strings.Split(*cacerts) {
+	for _, path := range strings.Split(*cacerts) {
 		b, err := ioutil.ReadFile(path)
 		if err != nil {
 			log.Printf("Failed to read client CA PEM file %q", path)
