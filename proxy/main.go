@@ -1,10 +1,10 @@
-/* proxy is an HTTPS proxy for internal webservers.
+/* proxy is an HTTPS reverse proxy secured by client certificates.
 
 Example usage:
   $ proxy \
     --certificate=/opt/ssl/ssl.crt \
     --key=/opt/ssl/ssl.key \
-    --domain=jgilik.com
+    --domain=gigayak.com
 */
 package main
 
@@ -65,8 +65,7 @@ func (h *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.URL.Host = r.Host
 	}
 
-	// Security validation - prevents us from being an open proxy if this
-	// server is accidentally left exposed to the world.
+	// Security validation - prevents us from being an open proxy.
 	if !strings.HasSuffix(r.URL.Host, "." + h.domain) && r.URL.Host != h.domain {
 		log.Printf("Invalid host: %q", r.URL.Host)
 		http.Error(w, "invalid host", http.StatusBadRequest)
